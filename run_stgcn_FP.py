@@ -84,28 +84,40 @@ if __name__ == "__main__":
     if debug:
         num_epoch = 2
 
+    loss = None
+    train_len = len(train_loader)
+    
     for epoch in range(num_epoch):
         # train
         loss_value = []
         correct = 0
         total = 0
         stgcn.train()
-        for data, label in train_loader:
+        for i, (data, label) in enumerate(train_loader):
             # get data
             data = data.float().cuda()
             label = label.long().cuda()
             # forward
             output = stgcn(data[:,:, :-num_future, :, :])
-            loss = criterion(output, data[:,:, num_future:, :, :])
+            
+            if loss is None:
+                loss = criterion(output, data[:,:, num_future:, :, :])
+            else:
+                loss += criterion(output, data[:,:, num_future:, :, :])
             # backward
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            # statistics
-            now_loss = loss.data.item()
-            loss_value.append(now_loss)
-            sys.stdout.write("Training epoch %d/%d   batch loss: %.5f\r"
-                            %(epoch+1, num_epoch, now_loss))
+            if (train_len*epoch+i) % args["batch_size"]==0:
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()                
+
+                # statistics
+                now_loss = loss.data.item()
+                loss_value.append(now_loss)
+                sys.stdout.write("Training epoch %d/%d   batch loss: %.5f\r"
+                                %(epoch+1, num_epoch, now_loss))
+                
+                loss=None
+
         train_logger.write("epoch %d loss %f\n"%(epoch+1, np.mean(loss_value)))
         print("\nFinish training epoch %d/%d, epoch loss: %.5f\n"
               %(epoch+1, num_epoch, np.mean(loss_value)))
