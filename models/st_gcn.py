@@ -37,7 +37,7 @@ class Model(nn.Module):
         self.register_buffer('A', A)
 
         # build networks
-        spatial_kernel_size = A.size(0)
+        spatial_kernel_size = A.size(0) 
         temporal_kernel_size = 9
         kernel_size = (temporal_kernel_size, spatial_kernel_size)
         self.data_bn = nn.BatchNorm1d(in_channels * A.size(1))
@@ -70,11 +70,11 @@ class Model(nn.Module):
 
         # data normalization
         N, C, T, V, M = x.size()
-        x = x.permute(0, 4, 3, 1, 2).contiguous()
+        x = x.permute(0, 4, 3, 1, 2).contiguous() # N,M,V,C,T
         x = x.view(N * M, V * C, T)
         x = self.data_bn(x)
         x = x.view(N, M, V, C, T)
-        x = x.permute(0, 1, 3, 4, 2).contiguous()
+        x = x.permute(0, 1, 3, 4, 2).contiguous() # N,M,C,T,V
         x = x.view(N * M, C, T, V)
 
         # forwad

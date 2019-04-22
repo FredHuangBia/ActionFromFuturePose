@@ -29,7 +29,7 @@ def weights_init(m):
         m.bias.data.fill_(0)
 
 
-if __name__ == "__main__":
+def main():
     debug = False
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', default="config/st_gcn/ntu/train.yaml")
@@ -58,6 +58,7 @@ if __name__ == "__main__":
     devices = args["device"]
     model_args = args["model_args"]
     stgcn = STGCN(**model_args)
+
     stgcn.apply(weights_init)
     # model.load_state_dict(torch.load(save_path))
     if len(devices) > 1:
@@ -147,3 +148,7 @@ if __name__ == "__main__":
         torch.save(stgcn.module.state_dict(), save_path)
     else:
         torch.save(stgcn.state_dict(), save_path)
+
+
+if __name__ == "__main__":
+    main()

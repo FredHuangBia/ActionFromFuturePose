@@ -44,7 +44,7 @@ class ConvTemporalGraphical(nn.Module):
                  bias=True):
         super().__init__()
 
-        self.kernel_size = kernel_size
+        self.kernel_size = kernel_size # spatial
         self.conv = nn.Conv2d(
             in_channels,
             out_channels * kernel_size,
@@ -56,11 +56,12 @@ class ConvTemporalGraphical(nn.Module):
 
     def forward(self, x, A):
         assert A.size(0) == self.kernel_size
-
+        # x: n*m, c, t, v
         x = self.conv(x)
 
         n, kc, t, v = x.size()
         x = x.view(n, self.kernel_size, kc//self.kernel_size, t, v)
+        # x[n,c,t,w] = sum_k sum_v x[:,k,:,:,v] .* A[k,v,:]
         x = torch.einsum('nkctv,kvw->nctw', (x, A))
 
         return x.contiguous(), A

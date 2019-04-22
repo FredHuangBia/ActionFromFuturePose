@@ -11,7 +11,7 @@ from torch.autograd import Variable
 from torch.utils.data.dataloader import DataLoader
 
 from models.st_gcn_FP import Model_FP as STGCN
-from data.ntu import NTU_Dataset
+from data.ntu_fp import NTU_FP_Dataset
 
 
 def weights_init(m):
@@ -32,7 +32,7 @@ def weights_init(m):
 if __name__ == "__main__":
     debug = False
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', default="config/st_gcn/ntu/train.yaml")
+    parser.add_argument('-c', '--config', default="config/fp_gcn/ntu_fp/train.yaml")
     argv = sys.argv[2:]
     p = parser.parse_args(argv)
     with open(p.config, 'r') as f:
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         args = yaml.load(f)
 
     train_feeder_args = args["train_feeder_args"]
-    train_dataset = NTU_Dataset(**train_feeder_args, debug=debug)
+    train_dataset = NTU_FP_Dataset(**train_feeder_args, debug=debug)
     train_loader = DataLoader(  dataset=train_dataset,
                                 batch_size=args["batch_size"],
                                 shuffle=True,
@@ -48,7 +48,7 @@ if __name__ == "__main__":
                                 drop_last=True)
 
     test_feeder_args = args["test_feeder_args"]
-    test_dataset = NTU_Dataset(**test_feeder_args, debug=debug)   
+    test_dataset = NTU_FP_Dataset(**test_feeder_args, debug=debug)   
     test_loader = DataLoader(  dataset=train_dataset,
                                 batch_size=args["batch_size"],
                                 shuffle=True,
@@ -105,7 +105,7 @@ if __name__ == "__main__":
             else:
                 loss += criterion(output, data[:,:, num_future:, :, :])
             # backward
-            if (train_len*epoch+i) % args["batch_size"]==0:
+            if (train_len*epoch+i) % args["loss_batch_size"]==0:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()                

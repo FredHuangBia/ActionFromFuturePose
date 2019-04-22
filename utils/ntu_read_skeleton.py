@@ -39,7 +39,6 @@ def read_skeleton(file):
             skeleton_sequence['frameInfo'].append(frame_info)
     return skeleton_sequence
 
-
 def read_xyz(file, max_body=2, num_joint=25):
     seq_info = read_skeleton(file)
     data = np.zeros((3, seq_info['numFrame'], num_joint, max_body))
@@ -51,3 +50,19 @@ def read_xyz(file, max_body=2, num_joint=25):
                 else:
                     pass
     return data
+
+
+def read_xyz_fp(file, max_body=2, num_joint=25):
+    seq_info = read_skeleton(file)
+    data = np.zeros((3, seq_info['numFrame'], num_joint, max_body))
+    num_body = 0
+    for n, f in enumerate(seq_info['frameInfo']):
+        for m, b in enumerate(f['bodyInfo']):
+            num_body = m+1
+            for j, v in enumerate(b['jointInfo']):
+                if m < max_body and j < num_joint:
+                    data[:, n, j, m] = [v['x'], v['y'], v['z']]
+                else:
+                    pass
+    num_body = min(num_body, max_body)
+    return data, num_body
