@@ -109,7 +109,6 @@ class Model_FP(nn.Module):
         #Need N, C, T, V, M
         predicted = predicted.view(N, M, 3, T, V)
         predicted = predicted.permute(0, 2, 3, 4, 1)
-        print("Out", predicted.shape) #NxM, C=3, T, 25 
 
         return predicted
 
