@@ -104,7 +104,7 @@ if __name__ == "__main__":
             optimizer.step()                
 
             # statistics
-            now_loss = loss.data.item()
+            now_loss = loss.data.item() / (data.shape[2] - num_future)
             loss_value.append(now_loss)
             sys.stdout.write("Training epoch %d/%d batch %d/%d  batch loss: %.5f\r"
                             %(epoch+1, num_epoch, i, len(train_loader), now_loss))
@@ -124,7 +124,7 @@ if __name__ == "__main__":
             output = stgcn(data[:,:, :-num_future, :, :])
             loss = criterion(output, data[:, :, num_future:, :, :])
             # statistics
-            now_loss = loss.data.item()
+            now_loss = loss.data.item()  / (data.shape[2] - num_future)
             loss_value.append(now_loss)
             sys.stdout.write("Testing epoch %d/%d batch %d/%d  batch loss: %.5f \r"
                             %(epoch+1, num_epoch, i, len(test_loader), now_loss))
@@ -133,7 +133,7 @@ if __name__ == "__main__":
               %(epoch+1, num_epoch, np.mean(loss_value)))
 
         # save trained model
-        save_path = os.path.join(work_dir, 'trained_stgcn_batch_1.pt')
+        save_path = os.path.join(work_dir, 'trained_stgcn_batch_1_relative.pt')
         if isinstance(stgcn, nn.DataParallel):
             torch.save(stgcn.module.state_dict(), save_path)
         else:
