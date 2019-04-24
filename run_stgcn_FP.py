@@ -133,7 +133,7 @@ if __name__ == "__main__":
               %(epoch+1, num_epoch, np.mean(loss_value)))
 
         # save trained model
-        save_path = os.path.join(work_dir, 'trained_stgcn_batch_1_relative.pt')
+        save_path = os.path.join(work_dir, 'trained_stgcn.pt')
         if isinstance(stgcn, nn.DataParallel):
             torch.save(stgcn.module.state_dict(), save_path)
         else:

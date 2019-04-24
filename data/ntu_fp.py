@@ -33,7 +33,7 @@ class NTU_FP_Dataset(torch.utils.data.Dataset):
     def __init__(self,
                  data_path,
                  label_path,
-                 relative=True,
+                 relative=False,
                  random_choose=False,
                  random_move=False,
                  window_size=-1,
@@ -46,6 +46,8 @@ class NTU_FP_Dataset(torch.utils.data.Dataset):
         self.random_choose = random_choose
         self.random_move = random_move
         self.window_size = window_size
+        if self.relative:
+            print("Relative mode")
 
         self.load_data(mmap)
 
@@ -77,15 +79,15 @@ class NTU_FP_Dataset(torch.utils.data.Dataset):
         # get data
         data_numpy = np.array(self.data[index]) # [num channel, time, num joints, num perosn]
 
-        if self.relative:
-            data_numpy = self.to_relative(data_numpy)
-
         length = self.length[index]
         data_numpy = data_numpy[:, 0:length, :, :]
 
-        # move first frame to center
-        means = data_numpy[:, 0:1, :, :].sum(axis=(2, 3), keepdims=True) / data_numpy.shape[3]
-        data_numpy = data_numpy - means
+        if self.relative:
+            data_numpy = self.to_relative(data_numpy)
+        else:
+            # move to center
+            means = data_numpy[:, 0:1, :, :].sum(axis=(2, 3), keepdims=True) / data_numpy.shape[2]
+            data_numpy = data_numpy - means
 
         label = self.label[index]
 

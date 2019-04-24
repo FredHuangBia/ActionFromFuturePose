@@ -1,13 +1,15 @@
-work_dir: ./work_dir/recognition/ntu-xsub/FP_GCN
+work_dir: ./work_dir/recognition/ntu-xsub/FP_GCN_relative
 
 # feeder
 feeder: feeder.feeder.Feeder
 train_feeder_args:
   data_path: ../Datasets/NTU/NTU-RGB-D/xsub/train_fp_data.npy
   label_path: ../Datasets/NTU/NTU-RGB-D/xsub/train_fp_label.pkl
+  relative: True
 test_feeder_args:
   data_path: ../Datasets/NTU/NTU-RGB-D/xsub/val_fp_data.npy
   label_path: ../Datasets/NTU/NTU-RGB-D/xsub/val_fp_label.pkl
+  relative: True
 
 # model
 model: net.fp_gcn.Model
@@ -22,7 +24,7 @@ model_args:
 
 #optim
 weight_decay: 0.0001
-base_lr: 0.001
+base_lr: 0.01
 step: [10, 50]
 
 # training
@@ -30,7 +32,7 @@ device: [0]
 batch_size: 1
 loss_batch_size: 64
 test_batch_size: 1
-num_epoch: 80
+num_epoch: 30
 
 
 
