@@ -22,11 +22,11 @@ model_args:
 
 #optim
 weight_decay: 0.0001
-base_lr: 0.1
+base_lr: 0.001
 step: [10, 50]
 
 # training
-device: [3]
+device: [0]
 batch_size: 1
 loss_batch_size: 64
 test_batch_size: 1

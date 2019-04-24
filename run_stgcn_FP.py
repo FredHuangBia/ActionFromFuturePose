@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     test_feeder_args = args["test_feeder_args"]
     test_dataset = NTU_FP_Dataset(**test_feeder_args, debug=debug)   
-    test_loader = DataLoader(  dataset=train_dataset,
+    test_loader = DataLoader(  dataset=test_dataset,
                                 batch_size=args["batch_size"],
                                 shuffle=True,
                                 num_workers=2,
@@ -84,67 +84,56 @@ if __name__ == "__main__":
     if debug:
         num_epoch = 2
 
-    loss = None
     train_len = len(train_loader)
     
     for epoch in range(num_epoch):
         # train
-        loss_value = []
-        correct = 0
-        total = 0
         stgcn.train()
+        loss_value = []
         for i, (data, label) in enumerate(train_loader):
             # get data
             data = data.float().cuda()
             label = label.long().cuda()
             # forward
-            output = stgcn(data[:,:, :-num_future, :, :])
-            
-            if loss is None:
-                loss = criterion(output, data[:,:, num_future:, :, :])
-            else:
-                loss += criterion(output, data[:,:, num_future:, :, :])
+            output = stgcn(data[:,:, :-num_future, :, :]) 
+            loss = criterion(output, data[:,:, num_future:, :, :])
             # backward
-            if (train_len*epoch+i) % args["loss_batch_size"]==0:
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()                
+            # if (train_len*epoch+i) % args["loss_batch_size"]==0:
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()                
 
-                # statistics
-                now_loss = loss.data.item()
-                loss_value.append(now_loss)
-                sys.stdout.write("Training epoch %d/%d   batch loss: %.5f\r"
-                                %(epoch+1, num_epoch, now_loss))
-                
-                loss=None
+            # statistics
+            now_loss = loss.data.item()
+            loss_value.append(now_loss)
+            sys.stdout.write("Training epoch %d/%d batch %d/%d  batch loss: %.5f\r"
+                            %(epoch+1, num_epoch, i, len(train_loader), now_loss))
 
         train_logger.write("epoch %d loss %f\n"%(epoch+1, np.mean(loss_value)))
         print("\nFinish training epoch %d/%d, epoch loss: %.5f\n"
               %(epoch+1, num_epoch, np.mean(loss_value)))
 
         # test
-        loss_value = []
-        correct = 0
-        total = 0
         stgcn.eval()
-        for data, label in test_loader:
+        loss_value = []
+        for i, (data, label) in enumerate(test_loader):
             # get data
             data = data.float().cuda()
             label = label.long().cuda()
             # forward
-            output = stgcn(data)
-            loss = criterion(output, label)
+            output = stgcn(data[:,:, :-num_future, :, :])
+            loss = criterion(output, data[:, :, num_future:, :, :])
             # statistics
             now_loss = loss.data.item()
             loss_value.append(now_loss)
-            sys.stdout.write("Testing epoch %d/%d   batch loss: %.5f \r"
-                            %(epoch+1, num_epoch, now_loss))
-        test_logger.write("epoch %d loss %f acc %f\n"%(epoch+1, np.mean(loss_value)))
+            sys.stdout.write("Testing epoch %d/%d batch %d/%d  batch loss: %.5f \r"
+                            %(epoch+1, num_epoch, i, len(test_loader), now_loss))
+        test_logger.write("epoch %d loss %f \n"%(epoch+1, np.mean(loss_value)))
         print("\nFinish testing epoch %d/%d, epoch loss: %.5f \n"
               %(epoch+1, num_epoch, np.mean(loss_value)))
 
         # save trained model
-        save_path = os.path.join(work_dir, 'trained_stgcn.pt')
+        save_path = os.path.join(work_dir, 'trained_stgcn_batch_1.pt')
         if isinstance(stgcn, nn.DataParallel):
             torch.save(stgcn.module.state_dict(), save_path)
         else:

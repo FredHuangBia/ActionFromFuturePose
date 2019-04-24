@@ -42,13 +42,13 @@ class Model_FP(nn.Module):
         kernel_size = (temporal_kernel_size, spatial_kernel_size)
         self.data_bn = nn.BatchNorm1d(in_channels * A.size(1))
         self.st_gcn_networks = nn.ModuleList((
-            s_gcn(in_channels, 64, kernel_size, 1, residual=False, **kwargs),
+            s_gcn(in_channels, 16, kernel_size, 1, residual=False, **kwargs),
+            s_gcn(16, 16, kernel_size, 1, **kwargs),
+            s_gcn(16, 32, kernel_size, 1, **kwargs),
+            s_gcn(32, 32, kernel_size, 1, **kwargs),
+            s_gcn(32, 64, kernel_size, 2, **kwargs),
             s_gcn(64, 64, kernel_size, 1, **kwargs),
             s_gcn(64, 64, kernel_size, 1, **kwargs),
-            s_gcn(64, 64, kernel_size, 1, **kwargs),
-            s_gcn(64, 128, kernel_size, 2, **kwargs),
-            s_gcn(128, 128, kernel_size, 1, **kwargs),
-            s_gcn(128, 128, kernel_size, 1, **kwargs),
             #s_gcn(128, 256, kernel_size, 2, **kwargs),
             #s_gcn(256, 256, kernel_size, 1, **kwargs),
             #s_gcn(256, 256, kernel_size, 1, **kwargs),
@@ -64,10 +64,10 @@ class Model_FP(nn.Module):
             self.edge_importance = [1] * len(self.st_gcn_networks)
 
         # single LSTM
-        self.lstm = nn.LSTM(25*128, 25*128, 3, batch_first = True)
+        self.lstm = nn.LSTM(25*64, 25*64, 1, batch_first = True)
         
         # fcn for prediction
-        self.fcn = nn.Conv2d(128, 3, kernel_size=1)
+        self.fcn = nn.Conv2d(64, 3, kernel_size=1)
 
     def forward(self, x):
 
@@ -97,11 +97,11 @@ class Model_FP(nn.Module):
         #x = x.view(N, M, -1, 1, 1).mean(dim=1)
 
         #get T dim again
-        x = x.view(N*M, T, 128*25)
+        x = x.view(N*M, T, 64*25)
         
         #pass to an LSTM
         predicted, _ = self.lstm(x)
-        predicted = predicted.view(N*M, T, 128, 25)
+        predicted = predicted.view(N*M, T, 64, 25)
         predicted = predicted.permute(0,2,1,3) # NxM, C=128, T, 25 
         
         # prediction
@@ -287,35 +287,35 @@ class s_gcn(nn.Module):
         self.gcn = ConvTemporalGraphical(in_channels, out_channels,
                                          kernel_size[1])
 
-        self.tcn = nn.Sequential(
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                out_channels,
-                out_channels,
-                (kernel_size[0], 1),
-                (stride, 1),
-                padding,
-            ),
-            nn.BatchNorm2d(out_channels),
-            nn.Dropout(dropout, inplace=True),
-        )
+        # self.tcn = nn.Sequential(
+        #     nn.BatchNorm2d(out_channels),
+        #     nn.ReLU(inplace=True),
+        #     nn.Conv2d(
+        #         out_channels,
+        #         out_channels,
+        #         (kernel_size[0], 1),
+        #         (stride, 1),
+        #         padding,
+        #     ),
+        #     nn.BatchNorm2d(out_channels),
+        #     nn.Dropout(dropout, inplace=True),
+        # )
 
-        if not residual:
-            self.residual = lambda x: 0
+        # if not residual:
+        #     self.residual = lambda x: 0
 
-        elif (in_channels == out_channels) and (stride == 1):
-            self.residual = lambda x: x
+        # elif (in_channels == out_channels) and (stride == 1):
+        #     self.residual = lambda x: x
 
-        else:
-            self.residual = nn.Sequential(
-                nn.Conv2d(
-                    in_channels,
-                    out_channels,
-                    kernel_size=1,
-                    stride=(stride, 1)),
-                nn.BatchNorm2d(out_channels),
-            )
+        # else:
+        #     self.residual = nn.Sequential(
+        #         nn.Conv2d(
+        #             in_channels,
+        #             out_channels,
+        #             kernel_size=1,
+        #             stride=(stride, 1)),
+        #         nn.BatchNorm2d(out_channels),
+        #     )
 
         self.relu = nn.ReLU(inplace=True)
 

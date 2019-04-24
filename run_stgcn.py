@@ -49,7 +49,7 @@ def main():
 
     test_feeder_args = args["test_feeder_args"]
     test_dataset = NTU_Dataset(**test_feeder_args, debug=debug)   
-    test_loader = DataLoader(  dataset=train_dataset,
+    test_loader = DataLoader(  dataset=test_dataset,
                                 batch_size=args["batch_size"],
                                 shuffle=True,
                                 num_workers=2,
