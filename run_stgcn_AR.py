@@ -135,9 +135,9 @@ if __name__ == "__main__":
         print("\nFinish testing epoch %d/%d, epoch loss: %.5f, epoch acc: %.5f \n"
               %(epoch+1, num_epoch, np.mean(loss_value), acc_clc.get_acc()))
 
-        # # save trained model
-        # save_path = os.path.join(work_dir, 'trained_stgcn.pt')
-        # if isinstance(stgcn, nn.DataParallel):
-        #     torch.save(stgcn.module.state_dict(), save_path)
-        # else:
-        #     torch.save(stgcn.state_dict(), save_path)
+        # save trained model
+        save_path = os.path.join(work_dir, 'trained_stgcn.pt')
+        if isinstance(stgcn, nn.DataParallel):
+            torch.save(stgcn.module.state_dict(), save_path)
+        else:
+            torch.save(stgcn.state_dict(), save_path)

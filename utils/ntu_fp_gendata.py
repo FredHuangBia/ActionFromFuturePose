@@ -96,7 +96,7 @@ def gendata(data_path,
                           i + 1, len(sample_name), benchmark, part))
         data, num_body = read_xyz_fp(os.path.join(data_path, s), max_body=max_body, num_joint=num_joint)
         total_num_body += num_body
-        for i in range(num_body):
+        for body_id in range(num_body):
             all_names.append(s)
             all_labels.append(sample_label[i])
             all_num_bodys.append(num_body)
