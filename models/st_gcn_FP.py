@@ -28,8 +28,10 @@ class Model_FP(nn.Module):
     """
 
     def __init__(self, in_channels, num_class, graph_args,
-                 edge_importance_weighting, **kwargs):
+                 edge_importance_weighting, pose=True, **kwargs):
         super().__init__()
+        # pose forecasting or feature only
+        self.pose = pose
 
         # load graph
         self.graph = Graph(**graph_args)
@@ -101,17 +103,21 @@ class Model_FP(nn.Module):
         
         #pass to an LSTM
         predicted, _ = self.lstm(x)
-        predicted = predicted.view(N*M, T, 64, 25)
-        predicted = predicted.permute(0,2,1,3) # NxM, C=128, T, 25 
-        
-        # prediction
-        predicted = self.fcn(predicted)
+        if self.pose:
+            predicted = predicted.view(N*M, T, 64, 25)
+            predicted = predicted.permute(0,2,1,3) # NxM, C=128, T, 25 
+            
+            # prediction
+            predicted = self.fcn(predicted)
 
-        #Need N, C, T, V, M
-        predicted = predicted.view(N, M, 3, T, V)
-        predicted = predicted.permute(0, 2, 3, 4, 1)
+            #Need N, C, T, V, M
+            predicted = predicted.view(N, M, 3, T, V)
+            predicted = predicted.permute(0, 2, 3, 4, 1)
 
-        return predicted
+            return predicted
+            
+        else:
+            return predicted
 
     def extract_avg_feature(self, x):
 

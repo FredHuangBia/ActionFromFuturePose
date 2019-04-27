@@ -1,4 +1,5 @@
-work_dir: ./work_dir/recognition/ntu-xsub/FP_GCN_relative
+work_dir: ./work_dir/recognition/ntu-xsub/AR_GCN_relative_att
+cpt_path: ./work_dir/recognition/ntu-xsub/FP_GCN_relative/trained_stgcn.pt
 
 # feeder
 feeder: feeder.feeder.Feeder
