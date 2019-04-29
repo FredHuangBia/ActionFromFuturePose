@@ -1,16 +1,16 @@
-work_dir: ./work_dir/recognition/ntu-xsub/AR_GCN_relative_att
-cpt_path: ./work_dir/recognition/ntu-xsub/FP_GCN_relative/trained_stgcn.pt
+work_dir: ./work_dir/ntu-xsub/FP_GCN
+cpt_path: ./work_dir/ntu-xsub/FP_GCN/trained_stgcn.pt
 
 # feeder
 feeder: feeder.feeder.Feeder
 train_feeder_args:
   data_path: ../Datasets/NTU/NTU-RGB-D/xsub/train_fp_data.npy
   label_path: ../Datasets/NTU/NTU-RGB-D/xsub/train_fp_label.pkl
-  relative: True
+  relative: False
 test_feeder_args:
   data_path: ../Datasets/NTU/NTU-RGB-D/xsub/val_fp_data.npy
   label_path: ../Datasets/NTU/NTU-RGB-D/xsub/val_fp_label.pkl
-  relative: True
+  relative: False
 
 # model
 model: net.fp_gcn.Model

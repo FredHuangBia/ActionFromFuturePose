@@ -81,8 +81,8 @@ if __name__ == "__main__":
     num_future = 6
     
     num_epoch = args["num_epoch"]
-    if debug:
-        num_epoch = 2
+    # if debug:
+    #     num_epoch = 2
 
     train_len = len(train_loader)
     

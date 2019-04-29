@@ -29,24 +29,27 @@ class Model_AR(nn.Module):
     """
 
     def __init__(self, in_channels, num_class, graph_args,
-                 edge_importance_weighting, **kwargs):
+                 edge_importance_weighting, pose=False, **kwargs):
         super().__init__()
         self.num_class = num_class
         self.model_fp = Model_FP(in_channels, num_class, graph_args, edge_importance_weighting, 
-        							pose=False, **kwargs)
+        							pose=pose, **kwargs)
 
-        self.att = nn.Linear(1600, 1)
+        # self.att = nn.Linear(1600, 1)
         self.fc = nn.Linear(1600, num_class)
+        self.pose = pose
 
 
     def forward(self, x):
         x = self.model_fp(x)
+        if self.pose:
+            return x
         seq_len = x.shape[1]
         x = x.view(-1, 1600)
         predicted = self.fc(x)
-        att = self.att(x)
-        att = F.softmax(att, dim=0)
-        predicted = predicted * att
+        # att = self.att(x)
+        # att = F.softmax(att, dim=0)
+        # predicted = predicted * att
         predicted = predicted.view(-1, seq_len, self.num_class)
         predicted = predicted.mean(dim=1)
 

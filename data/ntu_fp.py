@@ -64,9 +64,9 @@ class NTU_FP_Dataset(torch.utils.data.Dataset):
             self.data = np.load(self.data_path)
             
         if self.debug:
-            self.label = self.label[0:100]
-            self.data = self.data[0:100]
-            self.sample_name = self.sample_name[0:100]
+            self.label = self.label[0:1]
+            self.data = self.data[0:1]
+            self.sample_name = self.sample_name[0:1]
 
         self.N, self.C, self.T, self.V, self.M = self.data.shape
 

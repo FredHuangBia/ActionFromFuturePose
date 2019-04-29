@@ -68,7 +68,8 @@ if __name__ == "__main__":
     stgcn = stgcn.cuda()
 
     criterion = nn.CrossEntropyLoss()
-    params = list(stgcn.fc.parameters()) + list(stgcn.att.parameters())
+    params = stgcn.fc.parameters()
+    # params = list(stgcn.fc.parameters()) + list(stgcn.att.parameters())
     optimizer = optim.Adam(
                 params,
                 lr=args["base_lr"],

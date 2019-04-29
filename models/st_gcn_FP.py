@@ -46,7 +46,7 @@ class Model_FP(nn.Module):
         self.st_gcn_networks = nn.ModuleList((
             s_gcn(in_channels, 16, kernel_size, 1, residual=False, **kwargs),
             s_gcn(16, 16, kernel_size, 1, **kwargs),
-            s_gcn(16, 32, kernel_size, 1, **kwargs),
+            s_gcn(16, 32, kernel_size, 2, **kwargs),
             s_gcn(32, 32, kernel_size, 1, **kwargs),
             s_gcn(32, 64, kernel_size, 2, **kwargs),
             s_gcn(64, 64, kernel_size, 1, **kwargs),
@@ -66,7 +66,7 @@ class Model_FP(nn.Module):
             self.edge_importance = [1] * len(self.st_gcn_networks)
 
         # single LSTM
-        self.lstm = nn.LSTM(25*64, 25*64, 1, batch_first = True)
+        self.lstm = nn.LSTM(25*64, 25*64, 3, batch_first = True)
         
         # fcn for prediction
         self.fcn = nn.Conv2d(64, 3, kernel_size=1)
@@ -97,7 +97,7 @@ class Model_FP(nn.Module):
         # global pooling
         #x = F.avg_pool2d(x, x.size()[2:]) # BxM, C=128, 1, 1
         #x = x.view(N, M, -1, 1, 1).mean(dim=1)
-
+        # print(x[0,0,0,:])
         #get T dim again
         x = x.view(N*M, T, 64*25)
         
@@ -307,29 +307,29 @@ class s_gcn(nn.Module):
         #     nn.Dropout(dropout, inplace=True),
         # )
 
-        # if not residual:
-        #     self.residual = lambda x: 0
+        if not residual:
+            self.residual = lambda x: 0
 
-        # elif (in_channels == out_channels) and (stride == 1):
-        #     self.residual = lambda x: x
+        elif (in_channels == out_channels) and (stride == 1):
+            self.residual = lambda x: x
 
-        # else:
-        #     self.residual = nn.Sequential(
-        #         nn.Conv2d(
-        #             in_channels,
-        #             out_channels,
-        #             kernel_size=1,
-        #             stride=(stride, 1)),
-        #         nn.BatchNorm2d(out_channels),
-        #     )
+        else:
+            self.residual = nn.Sequential(
+                nn.Conv2d(
+                    in_channels,
+                    out_channels,
+                    kernel_size=1,
+                    stride=(stride, 1)),
+                nn.BatchNorm2d(out_channels),
+            )
 
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x, A):
 
-        #res = self.residual(x)
+        res = self.residual(x)
         x, A = self.gcn(x, A)
-        #x = self.tcn(x) + res
+        x = x + res
 
         return self.relu(x), A
     
