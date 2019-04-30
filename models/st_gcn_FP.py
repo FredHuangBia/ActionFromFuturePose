@@ -42,7 +42,6 @@ class Model_FP(nn.Module):
         spatial_kernel_size = A.size(0)
         temporal_kernel_size = 9
         kernel_size = (temporal_kernel_size, spatial_kernel_size)
-        self.data_bn = nn.BatchNorm1d(in_channels * A.size(1))
         self.st_gcn_networks = nn.ModuleList((
             s_gcn(in_channels, 16, kernel_size, 1, residual=False, **kwargs),
             s_gcn(16, 16, kernel_size, 1, **kwargs),

@@ -3,6 +3,9 @@ import sys
 import yaml
 import numpy as np
 import argparse
+import time
+
+from tensorboardX import SummaryWriter
 
 import torch
 import torch.nn as nn
@@ -24,13 +27,20 @@ def weights_init(m):
         m.weight.data.normal_(0.0, 0.02)
         if m.bias is not None:
             m.bias.data.fill_(0)
+    elif classname.find('Linear') != -1:
+        m.weight.data.normal_(0.0, 0.02)
+        if m.bias is not None:
+            m.bias.data.fill_(0)
     elif classname.find('BatchNorm') != -1:
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
 
 
 if __name__ == "__main__":
+    
+    logdir ='./logdir'
     debug = False
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', default="config/fp_gcn/ntu_fp/train.yaml")
     argv = sys.argv[2:]
@@ -86,6 +96,13 @@ if __name__ == "__main__":
 
     train_len = len(train_loader)
     
+    if logdir is not None:
+        if not os.path.exists(logdir):
+            os.makedirs(logdir)
+        log_file = str(int(time.time()))
+        writer = SummaryWriter(os.path.join(logdir,log_file))
+    
+    
     for epoch in range(num_epoch):
         # train
         stgcn.train()
@@ -101,13 +118,20 @@ if __name__ == "__main__":
             # if (train_len*epoch+i) % args["loss_batch_size"]==0:
             optimizer.zero_grad()
             loss.backward()
-            optimizer.step()                
 
             # statistics
             now_loss = loss.data.item() / (data.shape[2] - num_future)
             loss_value.append(now_loss)
             sys.stdout.write("Training epoch %d/%d batch %d/%d  batch loss: %.5f\r"
                             %(epoch+1, num_epoch, i, len(train_loader), now_loss))
+
+            step = epoch*len(train_loader)+i
+            writer.add_scalar('train/loss', now_loss, step)
+            for n, params in stgcn.named_parameters(): 
+                writer.add_histogram('train/weights_'+n, params.data, step) 
+                writer.add_histogram('train/gradients_'+n, params.grad, step) 
+            
+            optimizer.step()                
 
         train_logger.write("epoch %d loss %f\n"%(epoch+1, np.mean(loss_value)))
         print("\nFinish training epoch %d/%d, epoch loss: %.5f\n"
