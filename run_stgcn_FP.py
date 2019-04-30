@@ -108,6 +108,7 @@ if __name__ == "__main__":
         stgcn.train()
         loss_value = []
         for i, (data, label) in enumerate(train_loader):
+            print(label)
             # get data
             data = data.float().cuda()
             label = label.long().cuda()
@@ -127,9 +128,9 @@ if __name__ == "__main__":
 
             step = epoch*len(train_loader)+i
             writer.add_scalar('train/loss', now_loss, step)
-            for n, params in stgcn.named_parameters(): 
-                writer.add_histogram('train/weights_'+n, params.data, step) 
-                writer.add_histogram('train/gradients_'+n, params.grad, step) 
+            # for n, params in stgcn.named_parameters(): 
+            #     writer.add_histogram('train/weights_'+n, params.data, step) 
+            #     writer.add_histogram('train/gradients_'+n, params.grad, step) 
             
             optimizer.step()                
 

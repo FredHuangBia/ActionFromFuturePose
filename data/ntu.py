@@ -14,6 +14,7 @@ from torchvision import datasets, transforms
 
 # visualization
 import time
+from matplotlib import pyplot as plt
 
 # operation
 from . import utils
@@ -33,6 +34,7 @@ class NTU_Dataset(torch.utils.data.Dataset):
     def __init__(self,
                  data_path,
                  label_path,
+                 img_like=False,
                  random_choose=False,
                  random_move=False,
                  window_size=-1,
@@ -44,6 +46,7 @@ class NTU_Dataset(torch.utils.data.Dataset):
         self.random_choose = random_choose
         self.random_move = random_move
         self.window_size = window_size
+        self.img_like = img_like
 
         self.load_data(mmap)
 
@@ -83,4 +86,27 @@ class NTU_Dataset(torch.utils.data.Dataset):
         if self.random_move:
             data_numpy = tools.random_move(data_numpy)
 
-        return data_numpy, label
+        if self.img_like:
+            # (3, 300, 25, M)
+            H = 36
+            W = 64
+            delta_t = 5
+            T = int(300 / delta_t)
+            M = data_numpy.shape[3]
+            data = np.zeros([25, T, H, W], dtype=np.float32)
+            for m in range(M):
+                for t in range(0, 300, delta_t):
+                    for p in range(25):
+                        h_dec = data_numpy[1, int(t/delta_t), p, m]
+                        w_dec = data_numpy[0, int(t/delta_t), p, m]
+                        if (h_dec == 0 and w_dec == 0):
+                            continue
+                        h_dec = (h_dec + 1) / 2
+                        w_dec = (w_dec + 1) / 2
+                        h = max(0, min(H-1, H - int(round(H*h_dec))))
+                        w = max(0, min(W-1, int(round(W*w_dec)-1)))
+                        data[p, int(t/delta_t), h, w] = 1
+            return data, label
+
+        else:
+            return data_numpy, label
