@@ -61,6 +61,7 @@ def single_pose_image(pose, color=(255,255,255)):
     image = cv2.flip(image, 0)
     kernel = np.ones((5,5),np.float32)/25
     image = cv2.filter2D(image,-1,kernel)
+    image = cv2.resize(image,(200,400))
     
     return image
 
