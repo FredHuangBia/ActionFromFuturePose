@@ -38,7 +38,8 @@ class NTU_FP_Dataset(torch.utils.data.Dataset):
                  random_move=False,
                  window_size=-1,
                  debug=False,
-                 mmap=True):
+                 mmap=True,
+                 keep = None):
         self.debug = debug
         self.data_path = data_path
         self.label_path = label_path
@@ -49,9 +50,9 @@ class NTU_FP_Dataset(torch.utils.data.Dataset):
         if self.relative:
             print("Relative mode")
 
-        self.load_data(mmap)
+        self.load_data(mmap, keep)
 
-    def load_data(self, mmap):
+    def load_data(self, mmap, keep):
         # data: N C V T M
         # load label
         with open(self.label_path, 'rb') as f:
@@ -63,16 +64,29 @@ class NTU_FP_Dataset(torch.utils.data.Dataset):
         else:
             self.data = np.load(self.data_path)
             
-        if self.debug:
-            self.label = self.label[0:1]
-            self.data = self.data[0:1]
-            self.sample_name = self.sample_name[0:1]
+        self.label = np.array(self.label).reshape(-1,1)    
+        #if self.debug:
+        #    self.label = self.label[0:1]
+        #    self.data = self.data[0:1]
+        #    self.sample_name = self.sample_name[0:1]
 
+        #print(np.unique(self.label))
+        #if keep is not None:
+        #    keep_indices = ([],[])
+        #    for i in range(len(keep)):
+        #        inds = np.where(self.label==keep[i])
+        #        keep_indices[0].append(inds[0])
+        #        keep_indices[1].append(inds[1])
+                
+        #    self.label = self.label[keep_indices]
+        #    self.data = self.data[keep_indices]
+        #    self.sample_name = self.sample_name[keep_indices]
+            
         self.N, self.C, self.T, self.V, self.M = self.data.shape
 
 
     def __len__(self):
-        return len(self.label)
+        return self.label.shape[0]
 
 
     def __getitem__(self, index):
@@ -80,8 +94,11 @@ class NTU_FP_Dataset(torch.utils.data.Dataset):
         data_numpy = np.array(self.data[index]) # [num channel, time, num joints, num perosn]
 
         length = self.length[index]
+        #orig_len = 300
         data_numpy = data_numpy[:, 0:length, :, :]
-
+        #data_numpy_padded = np.pad(data_numpy, ((0,0),(0,orig_len-length),(0,0),(0,0)), 'constant', constant_values=0)
+        #data_numpy_padded = F.pad(data_numpy, (0,orig_len-length,0,0,0,0), mode='constant')
+        #print(data_numpy_padded.shape)
         if self.relative:
             data_numpy = self.to_relative(data_numpy)
         else:
@@ -91,7 +108,7 @@ class NTU_FP_Dataset(torch.utils.data.Dataset):
 
         label = self.label[index]
 
-        return data_numpy, label
+        return data_numpy, label, length
 
 
     def to_relative(self, data):

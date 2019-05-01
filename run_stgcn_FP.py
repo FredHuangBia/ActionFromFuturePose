@@ -16,6 +16,8 @@ from torch.utils.data.dataloader import DataLoader
 from models.st_gcn_FP import Model_FP as STGCN
 from data.ntu_fp import NTU_FP_Dataset
 
+torch.manual_seed(0)
+np.random.seed(0)
 
 def weights_init(m):
     classname = m.__class__.__name__
@@ -50,7 +52,7 @@ if __name__ == "__main__":
         args = yaml.load(f)
 
     train_feeder_args = args["train_feeder_args"]
-    train_dataset = NTU_FP_Dataset(**train_feeder_args, debug=debug)
+    train_dataset = NTU_FP_Dataset(**train_feeder_args, debug=debug, keep=[1])
     train_loader = DataLoader(  dataset=train_dataset,
                                 batch_size=args["batch_size"],
                                 shuffle=True,
@@ -58,7 +60,7 @@ if __name__ == "__main__":
                                 drop_last=True)
 
     test_feeder_args = args["test_feeder_args"]
-    test_dataset = NTU_FP_Dataset(**test_feeder_args, debug=debug)   
+    test_dataset = NTU_FP_Dataset(**test_feeder_args, debug=debug, keep=[1])   
     test_loader = DataLoader(  dataset=test_dataset,
                                 batch_size=args["batch_size"],
                                 shuffle=True,
@@ -130,6 +132,7 @@ if __name__ == "__main__":
             for n, params in stgcn.named_parameters(): 
                 writer.add_histogram('train/weights_'+n, params.data, step) 
                 writer.add_histogram('train/gradients_'+n, params.grad, step) 
+            writer.add_histogram('train/output',output.data, step)
             
             optimizer.step()                
 

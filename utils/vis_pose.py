@@ -8,7 +8,7 @@ def single_2D_pose(pose, offset = [0,0,0], scale = [1,1,1]):
     
     #convert pose to 2D
     rvec = np.array([0., 0., 0.])
-    tvec = np.array([0., 0., 50.])
+    tvec = np.array([0., 0., 10.])
     cameraMatrix = np.array([[1.0, 0.0, 0.0],
                              [0.0, 1.0, 0.0],
                              [0.0, 0.0, 1.0]])
@@ -24,7 +24,7 @@ def single_pose_image(pose, color=(255,255,255)):
             
     assert pose.shape[1]==3, "Incorrect input shape"
     _2D_pose = (pose[:,:2].reshape(25,2) * 500).astype('int')
-    #_2D_pose = (single_2D_pose(pose).reshape(25,2) * 100).astype('int')
+    #_2D_pose = (single_2D_pose(pose).reshape(25,2) * 500).astype('int')
     #display on image
 
     _2D_pose[:,0] -= _2D_pose[:,0].min()
